@@ -35,12 +35,13 @@ LSS is created to perform sentiment analysis of long texts, but training of its 
 ```{r, message=FALSE}
 require(quanteda)
 require(LSS)
+dir <- '/home/kohei/Dropbox/Public/'
 ```
 
 ```{r, cache=TRUE}
-load('/home/kohei/Dropbox/Public/guardian-sample.RData')
+corp <- readRDS(paste0(dir, 'data_corpus_guardian2016.RDS'))
 
-toks_sent <- data_corpus_guardian %>% 
+toks_sent <- corp %>% 
     corpus_reshape('sentences') %>% 
     tokens(remove_punct = TRUE)
 mt_sent <- toks_sent %>% 
@@ -48,7 +49,7 @@ mt_sent <- toks_sent %>%
     dfm_select('^[0-9a-zA-Z]+$', valuetype = 'regex') %>% 
     dfm_trim(min_count = 5)
 
-#' sentiment model on economy
+# sentiment model on economy
 eco <- head(char_keyness(toks_sent, 'econom*'), 500)
 lss_eco <- textmodel_lss(mt_sent, seedwords('pos-neg'), features = eco)
 
@@ -88,7 +89,7 @@ tail(coef(lss_pol), 20) # most negative words
 ## Predict sentiment of news
 
 ```{r}
-mt <- dfm(data_corpus_guardian)
+mt <- dfm(corp)
 ```
 
 ### Economic sentiment

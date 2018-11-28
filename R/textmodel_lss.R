@@ -63,9 +63,26 @@ textmodel_lss <- function(x, y, features = NULL, k = 300, cache = FALSE,
 
     if (verbose)
         cat("Calculating term-term similarity to", length(seed), "seed words...\n")
-
     if (verbose)
         cat("Starting singular value decomposition of dfm...\n")
+
+    temp <- cache_svd(x, k, cache, ...)
+    params <- get_params(temp, seed, features, simil_method)
+    result <- list(beta = sort(params$beta, decreasing = TRUE),
+                   features = if (is.null(features)) featnames(x) else features,
+                   seeds = y,
+                   seeds_weighted = split(seed, rep(names(y), lengths(seeds))),
+                   seeds_distance = params$mean,
+                   correlation = params$cor,
+                   call = match.call())
+    if (include_data)
+        result$data <- x
+    class(result) <- "textmodel_lss"
+
+    return(result)
+}
+
+cache_svd <- function(x, k, cache, ...) {
 
     hash <- digest::digest(list(as(x, "dgCMatrix"), k), algo = "xxhash64")
 
@@ -90,20 +107,7 @@ textmodel_lss <- function(x, y, features = NULL, k = 300, cache = FALSE,
         }
     }
     colnames(temp) <- featnames(x)
-    temp <- as.dfm(temp)
-    params <- get_params(temp, seed, features, simil_method)
-    result <- list(beta = sort(params$beta, decreasing = TRUE),
-                   features = if (is.null(features)) featnames(x) else features,
-                   seeds = y,
-                   seeds_weighted = split(seed, rep(names(y), lengths(seeds))),
-                   seeds_distance = params$mean,
-                   correlation = params$cor,
-                   call = match.call())
-    if (include_data)
-        result$data <- x
-    class(result) <- "textmodel_lss"
-
-    return(result)
+    return(as.dfm(temp))
 }
 
 #' @export

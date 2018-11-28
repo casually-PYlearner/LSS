@@ -57,8 +57,9 @@ textmodel_lss <- function(x, y, features = NULL, k = 300, cache = FALSE,
         stop("y must be a named-numerid vector\n", call. = FALSE)
 
     # generalte inflected seed
-    seed <- unlist(mapply(weight_seeds, names(y), unname(y) / length(y),
-                          MoreArgs = list(featnames(x)), USE.NAMES = FALSE, SIMPLIFY = FALSE))
+    seeds <- mapply(weight_seeds, names(y), unname(y) / length(y),
+                    MoreArgs = list(featnames(x)), USE.NAMES = FALSE, SIMPLIFY = FALSE)
+    seed <- unlist(seeds)
 
     if (verbose)
         cat("Calculating term-term similarity to", length(seed), "seed words...\n")
@@ -94,7 +95,7 @@ textmodel_lss <- function(x, y, features = NULL, k = 300, cache = FALSE,
     result <- list(beta = sort(params$beta, decreasing = TRUE),
                    features = if (is.null(features)) featnames(x) else features,
                    seeds = y,
-                   seeds_weighted = seed,
+                   seeds_weighted = split(seed, rep(names(y), lengths(seeds))),
                    seeds_distance = params$mean,
                    correlation = params$cor,
                    call = match.call())

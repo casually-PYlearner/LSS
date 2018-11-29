@@ -72,7 +72,9 @@ textmodel_lss <- function(x, y, features = NULL, k = 300, cache = FALSE,
                    features = if (is.null(features)) featnames(x) else features,
                    seeds = y,
                    seeds_weighted = split(seed, rep(names(y), lengths(seeds))),
-                   seeds_distance = params$mean,
+                   simil_mean = params$mean,
+                   simil_mean_abs = params$mean_abs,
+                   simil_var = params$var,
                    correlation = params$cor,
                    call = match.call())
     if (include_data)
@@ -187,7 +189,7 @@ get_params <- function(x, y, feature = NULL, method = "cosine") {
     weight <- unname(y)
     i <- order(weight, decreasing = TRUE)
 
-    temp <- textstat_simil(x, selection = seed, margin = "features", method = method)
+    temp <- as.matrix(textstat_simil(x, selection = seed, margin = "features", method = method))
     if (!is.null(feature))
         temp <- temp[unlist(pattern2fixed(feature, rownames(temp), "glob", FALSE)),,drop = FALSE]
     if (!identical(colnames(temp), seed))
@@ -197,7 +199,10 @@ get_params <- function(x, y, feature = NULL, method = "cosine") {
                 weight = weight,
                 seed = seed,
                 cor = cor(temp)[i, i, drop = FALSE],
-                mean = colMeans(abs(temp))))
+                mean = colMeans(temp),
+                mean_abs = colMeans(abs(temp)),
+                var = apply(temp, 2, var)
+           ))
 }
 
 
